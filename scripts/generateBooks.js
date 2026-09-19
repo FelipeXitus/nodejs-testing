@@ -1,19 +1,24 @@
 import fs from "fs";
 import { faker } from "@faker-js/faker";
+import { pipeline } from "stream/promises";
 
 export async function generateBooksToNDJSON(filePath, numberOfBooks) {
   const writeStream = fs.createWriteStream(filePath);
+  
+  await pipeline(
+    generateBooks(numberOfBooks),
+    writeStream
+  );
+}
 
+async function* generateBooks(numberOfBooks) {
   for (let i = 0; i < numberOfBooks; i++) {
-    const book = {
+    yield JSON.stringify({
       title: faker.lorem.words(3),
       author: faker.person.fullName(),
       ISBN: faker.string.numeric(10),
-    };
-    writeStream.write(JSON.stringify(book) + "\n");
+    }) + "\n";
   }
-
-  writeStream.end();
 }
 
-generateBooksToNDJSON("books.ndjson", 100000);
+//generateBooksToNDJSON("books.ndjson", 100000);
