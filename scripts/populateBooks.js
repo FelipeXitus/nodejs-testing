@@ -5,47 +5,25 @@ import BookModel from "../src/books/book.schema.js";
 
 export async function importBooksFromNDJSON(filePath, batchSize = 1000) {
   const fileStream = fs.createReadStream(filePath);
-  fileStream.on("open", () => {
-    console.log("Arquivo aberto com sucesso.");
-  });
-
-  fileStream.on("error", (error) => {
-    console.error("Erro ao abrir o arquivo:", error);
-  });
-
-  fileStream.on("close", () => {
-    console.log("Arquivo fechado.");
-  });
-
-  fileStream.on("end", () => {
-    console.log("Leitura do arquivo concluída.");
-  });
   const rl = readline.createInterface({ input: fileStream });
-
-  rl.on("close", () => {
-    console.log("Leitura do arquivo concluída pelo readline.");
-  });
-
-  rl.on("error", (error) => {
-    console.error("Erro no readline:", error);
-  });
-
   let batch = [];
-  let totalBooks = 0;
+  let insertPromises = [];
+
+  const processBatch = async (batch) => {
+    try {
+      await BookModel.insertMany(batch, { ordered: false})
+    } catch (error) {
+      if(!error.writeErrors) throw error
+    }
+  }
 
   for await (const line of rl) {
     try {
       const book = JSON.parse(line);
       batch.push(book);
-      totalBooks++;
 
       if (batch.length >= batchSize) {
-        console.log(`Inserindo lote de ${batch.length} livros...`);
-        try {
-          await BookModel.insertMany(batch);
-        } catch (error) {
-          console.error("Erro ao inserir lote de livros:", error);
-        }
+        insertPromises.push(processBatch(batch));
         batch = [];
       }
     } catch (error) {
@@ -54,16 +32,10 @@ export async function importBooksFromNDJSON(filePath, batchSize = 1000) {
   }
 
   if (batch.length > 0) {
-    console.log(`Inserindo último lote de ${batch.length} livros...`);
-    try {
-      await BookModel.insertMany(batch);
-    } catch (error) {
-      console.error("Erro ao inserir último lote de livros:", error);
-    }
+    insertPromises.push(processBatch(batch));
   }
 
-  console.log(`Importação concluída! Total de livros inseridos: ${totalBooks}`);
-
+  await Promise.all(insertPromises)
   rl.close();
   fileStream.destroy();
 }
