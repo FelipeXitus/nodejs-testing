@@ -10,7 +10,7 @@ export class BookService {
   }
 
   async find() {
-    return await BookModel.find();
+    return await BookModel.find().limit(500);
   }
 
   async findByTitle(title) {

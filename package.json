@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node --env-file=.env ./src/main.js",
-    "test:mocha": "mocha \"tests/**/*.spec.js\""
+    "test:mocha": "mocha \"tests/**/*.spec.js\"",
+    "test:jest": "node --env-file=.env.test --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +22,7 @@
     "@faker-js/faker": "^9.6.0",
     "chai": "^5.2.0",
     "esm": "^3.2.25",
-    "jest": "^29.7.0",
+    "jest": "^30.5.2",
     "mocha": "^11.1.0",
     "sinon": "^20.0.0",
     "supertest": "^7.1.0"
