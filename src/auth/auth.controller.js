@@ -19,11 +19,10 @@ export class AuthController {
         return res.status(400).json({ message: "Username already taken" });
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = await userService.createUser({
         username,
         email,
-        password: hashedPassword,
+        password,
       });
 
       return res.status(201).json({

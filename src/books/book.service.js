@@ -9,8 +9,31 @@ export class BookService {
     return await BookModel.create(book);
   }
 
-  async find() {
-    return await BookModel.find().limit(500);
+    async find(page = 1, limit = 20) {
+    page = Math.max(Number(page) || 1, 1);
+    limit = Math.min(Math.max(Number(limit) || 20, 1), 100);
+
+    const skip = (page - 1) * limit;
+
+    const [books, total] = await Promise.all([
+      BookModel.find()
+        .sort({ _id: 1 })
+        .skip(skip)
+        .limit(limit),
+      BookModel.countDocuments()
+    ]);
+
+    return {
+      data: books,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPreviousPage: page > 1
+      }
+    };
   }
 
   async findByTitle(title) {

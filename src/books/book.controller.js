@@ -12,10 +12,16 @@ class BookController {
 
   async find(req, res) {
     try {
-      const books = await new BookService().find();
+      const { page = 1, limit = 20 } = req.query;
+
+      const books = await new BookService().find(page, limit);
+
       res.status(200).send(books);
     } catch (error) {
-      res.status(500).send({ message: "Internal Server Error", error });
+      res.status(500).send({
+        message: "Internal Server Error",
+        error,
+      });
     }
   }
 
